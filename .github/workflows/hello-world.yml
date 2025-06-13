@@ -52,6 +52,9 @@ jobs:
               username: ${{ github.repository_owner }}
               password: ${{ secrets.GITHUB_TOKEN }}   
 
+          - name: Debug Dockerhub Username
+            run: echo "DockerHub username is:${{ vars.DOCKERHUB_USERNAME }}"
+
           - name: Build Docker for Testing
             uses: docker/build-push-action@v6
             with:
