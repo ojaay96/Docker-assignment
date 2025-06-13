@@ -62,7 +62,7 @@ jobs:
           - name: Docker Image Testing
             run: |
                 docker images
-                docker run --name hello-world-app -d \
+                docker run --name hello-world -d \
                     -p 3000:3000 \
                     ${{ vars.DOCKERHUB_USERNAME }}/docker-assignment:${{ github.sha }}
 
