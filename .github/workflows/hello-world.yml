@@ -57,14 +57,14 @@ jobs:
             with:
                 context: .
                 push: false  # set to true to push
-                tags: ${{ vars.DOCKERHUB_USERNAME }}/hello-world-app:${{ github.sha }}
+                tags: ${{ vars.DOCKERHUB_USERNAME }}/docker-assignment:${{ github.sha }}
                 
           - name: Docker Image Testing
             run: |
                 docker images
                 docker run --name hello-world-app -d \
                     -p 3000:3000 \
-                    ${{ vars.DOCKERHUB_USERNAME }}/hello-world-app:${{ github.sha }}
+                    ${{ vars.DOCKERHUB_USERNAME }}/docker-assignment:${{ github.sha }}
 
                 echo "Waiting for the container to boot..."
                 sleep 5
@@ -76,8 +76,8 @@ jobs:
               context: .
               push: true
               tags: |
-                  ${{ vars.DOCKERHUB_USERNAME }}/hello-world-app:${{ github.sha }}
-                  ghcr.io/${{ github.repository_owner }}/hello-world-app:${{ github.sha }}                
+                  ${{ vars.DOCKERHUB_USERNAME }}/docker-assignment:${{ github.sha }}
+                  ghcr.io/${{ github.repository_owner }}/docker-assignment:${{ github.sha }}                
 
 
     # deploy:
