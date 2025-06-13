@@ -91,6 +91,10 @@ jobs:
           id-token: write
           contents: read
 
+      env:
+          IMAGE_NAME: hello-world
+          ACR_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
+
       runs-on: ubuntu-latest
       steps:
         - name: Checkout Repository
@@ -108,9 +112,11 @@ jobs:
             cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
             resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
 
-          env:
-            IMAGE_NAME: hello-world
-            ACR_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
+        - name: Debug ENV
+          run: |
+            echo "IMAGE_NAME: $IMAGE_NAME"
+            echo "ACR_IMAGE: $ACR_IMAGE"
+
 
         - name: Deploy to AKS
           run: |
