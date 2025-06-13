@@ -31,7 +31,6 @@ jobs:
             run: npm install
 
           - name: Unit Testing
-            id: nodejs-unit-testing-step
             run: npm test
 
     # build:
