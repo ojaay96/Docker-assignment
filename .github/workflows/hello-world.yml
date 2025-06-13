@@ -67,7 +67,7 @@ jobs:
                     ${{ vars.DOCKERHUB_USERNAME }}/docker-assignment:${{ github.sha }}
 
                 echo "Waiting for the container to boot..."
-                sleep 5
+                sleep 15
                 curl -s http://127.0.0.1:3000 | grep -i hello
 
           - name: Container Registry Push
