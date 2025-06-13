@@ -72,7 +72,7 @@ jobs:
                 echo "Testing endpoint response:"
                 curl -s http://127.0.0.1:3000 || true
 
-                curl -s http://127.0.0.1:3000 | grep -i hell
+                curl -s http://127.0.0.1:3000 | grep -i "what is your name"
 
           - name: Container Registry Push
             uses: docker/build-push-action@v6
