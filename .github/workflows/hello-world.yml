@@ -129,16 +129,21 @@ jobs:
             echo "IMAGE_NAME: $IMAGE_NAME"
             echo "ACR_IMAGE: $ACR_IMAGE"
 
-
-        - name: Deploy to AKS
+        - name: Debug DNS and connectivity
           run: |
-              kubectl create deployment $IMAGE_NAME \
-                --image=$ACR_IMAGE --dry-run=client -o yaml | kubectl apply --validate=false -f -
-              kubectl expose deployment $IMAGE_NAME \
-                --type=LoadBalancer --port=80 --target-port=3000 \
-                --name=${IMAGE_NAME}-svc --dry-run=client -o yaml | kubectl apply --validate=false -f -
-              kubectl set image deployment/$IMAGE_NAME $IMAGE_NAME=$ACR_IMAGE --record
-              kubectl rollout status deployment/$IMAGE_NAME
+            nslookup aks1-hello-world-dns-0o2ff0ou.hcp.eastus.azmk8s.io || true
+            curl -k https://aks1-hello-world-dns-0o2ff0ou.hcp.eastus.azmk8s.io:443/healthz || true
+
+
+        # - name: Deploy to AKS
+        #   run: |
+        #       kubectl create deployment $IMAGE_NAME \
+        #         --image=$ACR_IMAGE --dry-run=client -o yaml | kubectl apply --validate=false -f -
+        #       kubectl expose deployment $IMAGE_NAME \
+        #         --type=LoadBalancer --port=80 --target-port=3000 \
+        #         --name=${IMAGE_NAME}-svc --dry-run=client -o yaml | kubectl apply --validate=false -f -
+        #       kubectl set image deployment/$IMAGE_NAME $IMAGE_NAME=$ACR_IMAGE --record
+        #       kubectl rollout status deployment/$IMAGE_NAME
 
         - name: Show service info
           run: kubectl get svc --selector=app=${{ env.IMAGE_NAME }} -o wide
