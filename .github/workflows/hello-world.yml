@@ -82,22 +82,20 @@ jobs:
               push: true
               tags: |
                   ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
-                  ghcr.io/${{ github.repository_owner }}/hello-world:${{ github.sha }}                
-
+                  ghcr.io/${{ github.repository_owner }}/hello-world:${{ github.sha }}  
+          
     deploy:
-      name: Deploy to AKS with ACR
-      runs-on: ubuntu-latest
+      name: Deploy to AKS
       needs: docker
       permissions:
           id-token: write
           contents: read
 
       env:
-        IMAGE_NAME: hello-world
-        ACR_NAME: ${{ secrets.ACR_NAME }}
-        ACR_LOGIN_SERVER: ${{ secrets.ACR_NAME }}.azurecr.io
-        ACR_IMAGE: ${{ secrets.ACR_NAME }}.azurecr.io/hello-world:${{ github.sha }}
+          IMAGE_NAME: hello-world
+          ACR_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
 
+      runs-on: ubuntu-latest
       steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
@@ -107,20 +105,10 @@ jobs:
           with:
             creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-        - name: Docker login to ACR
-          run: |
-            echo "Logging into Docker with ACR token..."
-            TOKEN=$(az acr login --name $ACR_NAME --expose-token --output tsv --query accessToken)
-            echo $TOKEN | docker login $ACR_LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 --password-stdin
-
-        - name: Build and Push Docker image to ACR
-          run: |
-              docker build -t $ACR_IMAGE .
-              docker push $ACR_IMAGE
-
         - name: Set AKS context
           uses: azure/aks-set-context@v3
           with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
             cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
             resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
 
@@ -129,69 +117,16 @@ jobs:
             echo "IMAGE_NAME: $IMAGE_NAME"
             echo "ACR_IMAGE: $ACR_IMAGE"
 
-        - name: Debug DNS and connectivity
+
+        - name: Deploy to AKS
           run: |
-            nslookup aks1-hello-world-dns-0o2ff0ou.hcp.eastus.azmk8s.io || true
-            curl -k https://aks1-hello-world-dns-0o2ff0ou.hcp.eastus.azmk8s.io:443/healthz || true
-
-
-        # - name: Deploy to AKS
-        #   run: |
-        #       kubectl create deployment $IMAGE_NAME \
-        #         --image=$ACR_IMAGE --dry-run=client -o yaml | kubectl apply --validate=false -f -
-        #       kubectl expose deployment $IMAGE_NAME \
-        #         --type=LoadBalancer --port=80 --target-port=3000 \
-        #         --name=${IMAGE_NAME}-svc --dry-run=client -o yaml | kubectl apply --validate=false -f -
-        #       kubectl set image deployment/$IMAGE_NAME $IMAGE_NAME=$ACR_IMAGE --record
-        #       kubectl rollout status deployment/$IMAGE_NAME
+            kubectl create deployment ${{ env.IMAGE_NAME }} \
+              --image=${{ env.ACR_IMAGE }} --dry-run=client -o yaml | kubectl apply -f -
+            kubectl expose deployment ${{ env.IMAGE_NAME }} \
+              --type=LoadBalancer --port=80 --target-port=3000 --name=${{ env.IMAGE_NAME }}-svc --dry-run=client -o yaml | kubectl apply -f -
+            kubectl set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.ACR_IMAGE }} --record
+            kubectl rollout status deployment/${{ env.IMAGE_NAME }}
 
         - name: Show service info
           run: kubectl get svc --selector=app=${{ env.IMAGE_NAME }} -o wide
-          
-  
-    # deploy:
-    #   name: Deploy to AKS
-    #   needs: docker
-    #   permissions:
-    #       id-token: write
-    #       contents: read
-
-    #   env:
-    #       IMAGE_NAME: hello-world
-    #       ACR_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
-
-    #   runs-on: ubuntu-latest
-    #   steps:
-    #     - name: Checkout Repository
-    #       uses: actions/checkout@v4
-
-    #     - name: Azure Login
-    #       uses: azure/login@v2
-    #       with:
-    #         creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    #     - name: Set AKS context
-    #       uses: azure/aks-set-context@v3
-    #       with:
-    #         creds: ${{ secrets.AZURE_CREDENTIALS }}
-    #         cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
-    #         resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
-
-    #     - name: Debug ENV
-    #       run: |
-    #         echo "IMAGE_NAME: $IMAGE_NAME"
-    #         echo "ACR_IMAGE: $ACR_IMAGE"
-
-
-    #     - name: Deploy to AKS
-    #       run: |
-    #         kubectl create deployment ${{ env.IMAGE_NAME }} \
-    #           --image=${{ env.ACR_IMAGE }} --dry-run=client -o yaml | kubectl apply -f -
-    #         kubectl expose deployment ${{ env.IMAGE_NAME }} \
-    #           --type=LoadBalancer --port=80 --target-port=3000 --name=${{ env.IMAGE_NAME }}-svc --dry-run=client -o yaml | kubectl apply -f -
-    #         kubectl set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.ACR_IMAGE }} --record
-    #         kubectl rollout status deployment/${{ env.IMAGE_NAME }}
-
-    #     - name: Show service info
-    #       run: kubectl get svc --selector=app=${{ env.IMAGE_NAME }} -o wide
           
