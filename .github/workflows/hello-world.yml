@@ -9,7 +9,7 @@ on:
 jobs:
     unit-testing:
         name: Unit Testing
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         steps:
           - name: Checkout Repository
             uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
         permissions:
             packages: write
             contents: read
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
 
         steps:
           - name: Check Repo
@@ -95,7 +95,7 @@ jobs:
           IMAGE_NAME: hello-world
           ACR_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
 
-      runs-on: ubuntu-latest
+      runs-on: self-hosted
       steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
@@ -120,7 +120,7 @@ jobs:
         - name: Deploy to AKS
           run: |
             kubectl create deployment ${{ env.IMAGE_NAME }} \
-              --image=${{ env.IMAGE_NAME }} --dry-run=client -o yaml | kubectl apply --validate=false -f -
+              --image=${{ env.ACR_IMAGE }} --dry-run=client -o yaml | kubectl apply --validate=false -f -
             kubectl expose deployment ${{ env.IMAGE_NAME }} \
               --type=LoadBalancer --port=80 --target-port=3000 --name=hello-world-svc --dry-run=client -o yaml | kubectl apply --validate=false -f -
             kubectl set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.ACR_IMAGE }} --record
