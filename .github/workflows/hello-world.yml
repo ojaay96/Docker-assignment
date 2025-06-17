@@ -117,6 +117,9 @@ jobs:
             echo "IMAGE_NAME: $IMAGE_NAME"
             echo "ACR_IMAGE: $ACR_IMAGE"
 
+        - name: DNS Lookup for AKS API Server
+          run: nslookup aks-hello-world-dns-ozxgtgb2.hcp.eastus.azmk8s.io
+
 
         - name: Deploy to AKS
           run: |
@@ -129,4 +132,3 @@ jobs:
 
         - name: Show service info
           run: kubectl get svc --selector=app=${{ env.IMAGE_NAME }} -o wide
-          
