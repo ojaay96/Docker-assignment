@@ -9,7 +9,7 @@ on:
 jobs:
     unit-testing:
         name: Unit Testing
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         steps:
           - name: Checkout Repository
             uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
         permissions:
             packages: write
             contents: read
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
 
         steps:
           - name: Check Repo
@@ -95,7 +95,7 @@ jobs:
           IMAGE_NAME: hello-world
           ACR_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
 
-      runs-on: self-hosted
+      runs-on: ubuntu-latest
       steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
