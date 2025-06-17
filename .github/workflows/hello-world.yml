@@ -9,7 +9,7 @@ on:
 jobs:
     unit-testing:
         name: Unit Testing
-        runs-on: ubuntu-latest
+        runs-on: [ubuntu-latest, self-hosted]
         steps:
           - name: Checkout Repository
             uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
         permissions:
             packages: write
             contents: read
-        runs-on: ubuntu-latest
+        runs-on: [ubuntu-latest, self-hosted]
 
         steps:
           - name: Check Repo
@@ -84,47 +84,47 @@ jobs:
                   ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
                   ghcr.io/${{ github.repository_owner }}/hello-world:${{ github.sha }}  
           
-    deploy:
-      name: Deploy to AKS
-      needs: docker
-      permissions:
-          id-token: write
-          contents: read
+    # deploy:
+    #   name: Deploy to AKS
+    #   needs: docker
+    #   permissions:
+    #       id-token: write
+    #       contents: read
 
-      env:
-          IMAGE_NAME: hello-world
-          ACR_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
+    #   env:
+    #       IMAGE_NAME: hello-world
+    #       ACR_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
 
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v4
+    #   runs-on: ubuntu-latest
+    #   steps:
+    #     - name: Checkout Repository
+    #       uses: actions/checkout@v4
 
-        - name: Azure Login
-          uses: azure/login@v2
-          with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
+    #     - name: Azure Login
+    #       uses: azure/login@v2
+    #       with:
+    #         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-        - name: Set AKS context
-          uses: azure/aks-set-context@v3
-          with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
-            cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
-            resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+    #     - name: Set AKS context
+    #       uses: azure/aks-set-context@v3
+    #       with:
+    #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+    #         cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+    #         resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
 
-        - name: Debug ENV
-          run: |
-            echo "IMAGE_NAME: $IMAGE_NAME"
-            echo "ACR_IMAGE: $ACR_IMAGE"
+    #     - name: Debug ENV
+    #       run: |
+    #         echo "IMAGE_NAME: $IMAGE_NAME"
+    #         echo "ACR_IMAGE: $ACR_IMAGE"
 
-        - name: Deploy to AKS
-          run: |
-            kubectl create deployment ${{ env.IMAGE_NAME }} \
-              --image=... --dry-run=client -o yaml | kubectl apply --validate=false -f -
-            kubectl expose deployment ${{ env.IMAGE_NAME }} \
-              --type=LoadBalancer --port=80 --target-port=3000 --name=hello-world-svc --dry-run=client -o yaml | kubectl apply --validate=false -f -
-            kubectl set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.ACR_IMAGE }} --record
-            kubectl rollout status deployment/${{ env.IMAGE_NAME }}
+    #     - name: Deploy to AKS
+    #       run: |
+    #         kubectl create deployment ${{ env.IMAGE_NAME }} \
+    #           --image=... --dry-run=client -o yaml | kubectl apply --validate=false -f -
+    #         kubectl expose deployment ${{ env.IMAGE_NAME }} \
+    #           --type=LoadBalancer --port=80 --target-port=3000 --name=hello-world-svc --dry-run=client -o yaml | kubectl apply --validate=false -f -
+    #         kubectl set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.ACR_IMAGE }} --record
+    #         kubectl rollout status deployment/${{ env.IMAGE_NAME }}
 
-        - name: Show service info
-          run: kubectl get svc --selector=app=${{ env.IMAGE_NAME }} -o wide
+    #     - name: Show service info
+    #       run: kubectl get svc --selector=app=${{ env.IMAGE_NAME }} -o wide
