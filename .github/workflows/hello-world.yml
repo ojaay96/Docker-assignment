@@ -128,3 +128,4 @@ jobs:
 
         - name: Show service info
           run: kubectl get svc --selector=app=${{ env.IMAGE_NAME }} -o wide
+          
