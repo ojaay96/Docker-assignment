@@ -58,11 +58,12 @@ jobs:
           - name: Set up Docker Buildx
             uses: docker/setup-buildx-action@v3      #added to prevent self-hosted runner error
 
-          - name: Build Docker for Testing
+          - name: Build Docker for Testing (Locally)
             uses: docker/build-push-action@v6
             with:
                 context: .
                 push: false  # set to true to push
+                load: true   # Load image into local Docker daemon
                 tags: ${{ vars.DOCKERHUB_USERNAME }}/hello-world:${{ github.sha }}
                 
           - name: Docker Image Testing
@@ -78,7 +79,7 @@ jobs:
                 echo "Testing endpoint response:"            
                 curl -s http://127.0.0.1:3000 | grep -i "what is your name"
 
-          - name: Container Registry Push
+          - name: Push Image to Registries
             uses: docker/build-push-action@v6
             with:
               context: .
