@@ -53,7 +53,10 @@ jobs:
             with:
               registry: ghcr.io
               username: ${{ github.repository_owner }}
-              password: ${{ secrets.GITHUB_TOKEN }}   
+              password: ${{ secrets.GITHUB_TOKEN }}
+          
+          - name: Set up Docker Buildx
+            uses: docker/setup-buildx-action@v3      #added to prevent self-hosted runner error
 
           - name: Build Docker for Testing
             uses: docker/build-push-action@v6
